@@ -2,6 +2,23 @@ const STARTING_MONEY = 50;
 const BASE_MINIMUM_BET = 10;
 const MAX_HEAD_CHANCE = 0.8;
 
+const DESIGN_WIDTH = 1280;
+const DESIGN_HEIGHT = 800;
+
+const COLORS = {
+    background: 0x090d14,
+    panel: 0x121925,
+    panelLight: 0x182233,
+    panelBorder: 0x2c3748,
+    gold: 0xe4b84f,
+    goldBright: 0xffd978,
+    white: 0xf5f7fa,
+    muted: 0x9ba7b8,
+    blue: 0x58a6ff,
+    green: 0x45d483,
+    red: 0xff6673
+};
+
 const GAME_PHASE = {
     READY: "READY",
     FLIPPING: "FLIPPING",
@@ -53,11 +70,12 @@ const SHOP_ITEMS = {
 
 const config = {
     type: Phaser.AUTO,
-    backgroundColor: "#202020",
+    backgroundColor: COLORS.background,
     scale: {
-        mode: Phaser.Scale.RESIZE,
-        width: "100%",
-        height: "100%"
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: DESIGN_WIDTH,
+        height: DESIGN_HEIGHT
     },
     scene: {
         create: create
@@ -113,41 +131,58 @@ function createInitialState() {
 function createUI(currentScene) {
     const createdUI = {};
 
-    createdUI.title = makeText(currentScene, "COIN FLIP", 44, "#ffffff", "bold");
-    createdUI.money = makeText(currentScene, "", 28, "#ffd700");
-    createdUI.level = makeText(currentScene, "", 22, "#9ad5ff");
-    createdUI.xp = makeText(currentScene, "", 20, "#ffffff");
-    createdUI.result = makeText(currentScene, "", 28, "#ffffff", "bold");
-    createdUI.bet = makeText(currentScene, "", 24, "#ffffff");
-    createdUI.status = makeText(currentScene, "", 17, "#dddddd");
+    createdUI.background = currentScene.add.graphics();
+    createdUI.panels = currentScene.add.graphics();
+    createdUI.xpBar = currentScene.add.graphics();
 
-    createdUI.minusButton = createButton(currentScene, "-10", decreaseBet);
-    createdUI.plusButton = createButton(currentScene, "+10", increaseBet);
-    createdUI.allButton = createButton(currentScene, "ALL", betAll);
-    createdUI.shopButton = createButton(currentScene, "SHOP", openShop);
-    createdUI.coinButton = createButton(currentScene, "COIN: NORMAL", cycleCoin);
-    createdUI.tokenButton = createButton(currentScene, "FREE ALL-IN: 0", toggleFreeAllIn);
+    createdUI.title = makeText(currentScene, "COIN FLIP", 40, "#ffd978", "bold").setLetterSpacing(5);
+    createdUI.moneyLabel = makeText(currentScene, "BANKROLL", 13, "#9ba7b8", "bold").setLetterSpacing(2);
+    createdUI.money = makeText(currentScene, "", 32, "#ffd978", "bold");
+    createdUI.levelLabel = makeText(currentScene, "LEVEL", 13, "#9ba7b8", "bold").setLetterSpacing(2);
+    createdUI.level = makeText(currentScene, "", 25, "#58a6ff", "bold");
+    createdUI.xp = makeText(currentScene, "", 15, "#c8d4e3", "bold");
 
-    createdUI.gameOver = makeText(currentScene, "GAME OVER", 42, "#ff5555", "bold").setVisible(false);
+    createdUI.result = makeText(currentScene, "CLICK THE COIN", 25, "#f5f7fa", "bold").setLetterSpacing(2);
+    createdUI.resultMoney = makeText(currentScene, "", 25, "#f5f7fa", "bold");
+    createdUI.resultXp = makeText(currentScene, "", 17, "#58a6ff", "bold");
+
+    createdUI.betLabel = makeText(currentScene, "BET", 13, "#9ba7b8", "bold").setLetterSpacing(2);
+    createdUI.bet = makeText(currentScene, "", 38, "#ffd978", "bold");
+    createdUI.minimumBet = makeText(currentScene, "", 15, "#9ba7b8");
+    createdUI.maximumBet = makeText(currentScene, "", 15, "#9ba7b8");
+    createdUI.headLabel = makeText(currentScene, "HEAD CHANCE", 13, "#9ba7b8", "bold").setOrigin(0, 0.5);
+    createdUI.headValue = makeText(currentScene, "", 20, "#45d483", "bold").setOrigin(1, 0.5);
+    createdUI.shieldLabel = makeText(currentScene, "SHIELD", 13, "#9ba7b8", "bold").setOrigin(0, 0.5);
+    createdUI.shieldValue = makeText(currentScene, "", 20, "#58a6ff", "bold").setOrigin(1, 0.5);
+
+    createdUI.minusButton = createButton(currentScene, "−10", decreaseBet, "secondary", 130, 48);
+    createdUI.plusButton = createButton(currentScene, "+10", increaseBet, "secondary", 130, 48);
+    createdUI.allButton = createButton(currentScene, "ALL", betAll, "primary", 150, 48);
+    createdUI.shopButton = createButton(currentScene, "SHOP\nBROWSE", openShop, "secondary", 230, 58);
+    createdUI.coinButton = createButton(currentScene, "COIN\nNORMAL", cycleCoin, "secondary", 230, 58);
+    createdUI.tokenButton = createButton(currentScene, "SKILL\nFREE ALL-IN · 0", toggleFreeAllIn, "secondary", 230, 58);
+
+    createdUI.gameOver = makeText(currentScene, "GAME OVER", 42, "#ff6673", "bold").setDepth(10).setVisible(false);
     createdUI.restartButton = createButton(currentScene, "RESTART", restartGame);
-    createdUI.restartButton.setVisible(false).disableInteractive();
+    createdUI.restartButton.setDepth(10).setVisible(false).disableInteractive();
 
-    createdUI.overlay = currentScene.add.rectangle(0, 0, 10, 10, 0x000000, 0.82)
+    createdUI.overlay = currentScene.add.rectangle(0, 0, 10, 10, 0x05070b, 0.9)
         .setOrigin(0)
         .setDepth(100)
         .setVisible(false)
         .setInteractive();
-    createdUI.modalTitle = makeText(currentScene, "", 34, "#ffd700", "bold").setDepth(101).setVisible(false);
-    createdUI.modalSubtitle = makeText(currentScene, "", 18, "#ffffff").setDepth(101).setVisible(false);
+    createdUI.modalPanel = currentScene.add.graphics().setDepth(101).setVisible(false);
+    createdUI.modalTitle = makeText(currentScene, "", 34, "#ffd978", "bold").setDepth(102).setVisible(false);
+    createdUI.modalSubtitle = makeText(currentScene, "", 18, "#c8d4e3").setDepth(102).setVisible(false);
     createdUI.modalButtons = [
-        createButton(currentScene, "", function () { chooseModalOption(0); }).setDepth(101).setVisible(false),
-        createButton(currentScene, "", function () { chooseModalOption(1); }).setDepth(101).setVisible(false),
-        createButton(currentScene, "", function () { chooseModalOption(2); }).setDepth(101).setVisible(false)
+        createButton(currentScene, "", function () { chooseModalOption(0); }, "card", 250, 86).setDepth(102).setVisible(false),
+        createButton(currentScene, "", function () { chooseModalOption(1); }, "card", 250, 86).setDepth(102).setVisible(false),
+        createButton(currentScene, "", function () { chooseModalOption(2); }, "card", 250, 86).setDepth(102).setVisible(false)
     ];
     createdUI.modalInfo = [
-        makeText(currentScene, "", 16, "#dddddd").setDepth(101).setVisible(false),
-        makeText(currentScene, "", 16, "#dddddd").setDepth(101).setVisible(false),
-        makeText(currentScene, "", 16, "#dddddd").setDepth(101).setVisible(false)
+        makeText(currentScene, "", 16, "#c8d4e3").setDepth(102).setVisible(false),
+        makeText(currentScene, "", 16, "#c8d4e3").setDepth(102).setVisible(false),
+        makeText(currentScene, "", 16, "#c8d4e3").setDepth(102).setVisible(false)
     ];
     createdUI.rerollButton = createButton(currentScene, "REROLL", rerollShop).setDepth(101).setVisible(false);
     createdUI.closeShopButton = createButton(currentScene, "CLOSE", closeShop).setDepth(101).setVisible(false);
@@ -158,7 +193,7 @@ function createUI(currentScene) {
 
 function makeText(currentScene, value, size, color, style) {
     return currentScene.add.text(0, 0, value, {
-        fontFamily: "Arial, sans-serif",
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
         fontSize: size + "px",
         color: color,
         fontStyle: style || "normal",
@@ -167,73 +202,175 @@ function makeText(currentScene, value, size, color, style) {
     }).setOrigin(0.5);
 }
 
-function createButton(currentScene, label, callback) {
-    const button = currentScene.add.text(0, 0, label, {
-        fontFamily: "Arial, sans-serif",
-        fontSize: "20px",
-        color: "#ffffff",
-        backgroundColor: "#444444",
-        align: "center",
-        padding: { x: 16, y: 10 },
-        fixedWidth: 130
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+function createButton(currentScene, label, callback, type, width, height) {
+    const button = currentScene.add.container(0, 0);
+    const shadow = currentScene.add.graphics();
+    const background = currentScene.add.graphics();
+    const text = makeText(currentScene, label, type === "card" ? 18 : 17, "#f5f7fa", "bold");
+    button.add([shadow, background, text]);
+    button.buttonType = type || "secondary";
+    button.buttonWidth = width || 130;
+    button.buttonHeight = height || 46;
+    button.buttonShadow = shadow;
+    button.buttonBackground = background;
+    button.buttonLabel = text;
+    button.setSize(button.buttonWidth, button.buttonHeight).setInteractive({ useHandCursor: true });
+    drawButton(button, false);
 
-    button.on("pointerdown", callback);
+    button.setText = function (newLabel) {
+        text.setText(newLabel);
+        return button;
+    };
+    button.setFixedSize = function (newWidth, newHeight) {
+        button.buttonWidth = newWidth;
+        button.buttonHeight = newHeight;
+        button.setSize(newWidth, newHeight);
+        drawButton(button, false);
+        return button;
+    };
+
+    button.on("pointerdown", function () {
+        currentScene.tweens.add({ targets: button, scaleX: 0.97, scaleY: 0.97, duration: 55 });
+        callback();
+    });
+    button.on("pointerup", function () {
+        currentScene.tweens.add({ targets: button, scaleX: 1.04, scaleY: 1.04, duration: 70 });
+    });
     button.on("pointerover", function () {
         if (button.input && button.input.enabled) {
-            button.setStyle({ backgroundColor: "#666666" });
+            drawButton(button, true);
+            currentScene.tweens.add({ targets: button, scaleX: 1.04, scaleY: 1.04, duration: 90 });
         }
     });
     button.on("pointerout", function () {
-        button.setStyle({ backgroundColor: "#444444" });
+        drawButton(button, false);
+        currentScene.tweens.add({ targets: button, scaleX: 1, scaleY: 1, duration: 90 });
     });
 
     return button;
+}
+
+function drawButton(button, hover) {
+    const primary = button.buttonType === "primary";
+    const card = button.buttonType === "card";
+    const width = button.buttonWidth;
+    const height = button.buttonHeight;
+    const fill = primary ? (hover ? 0xf0c85f : COLORS.gold) : (hover ? 0x243248 : COLORS.panelLight);
+    const border = primary ? COLORS.goldBright : (card ? 0x46556c : COLORS.panelBorder);
+
+    button.buttonShadow.clear();
+    button.buttonShadow.fillStyle(0x000000, 0.35);
+    button.buttonShadow.fillRoundedRect(-width / 2 + 3, -height / 2 + 5, width, height, 10);
+    button.buttonBackground.clear();
+    button.buttonBackground.fillStyle(fill, 1);
+    button.buttonBackground.lineStyle(1.5, border, hover ? 1 : 0.8);
+    button.buttonBackground.fillRoundedRect(-width / 2, -height / 2, width, height, 10);
+    button.buttonBackground.strokeRoundedRect(-width / 2, -height / 2, width, height, 10);
+    button.buttonLabel.setColor(primary ? "#17130a" : "#f5f7fa");
 }
 
 function layoutUI(gameSize) {
     const width = gameSize.width;
     const height = gameSize.height;
     const centerX = width / 2;
-    const compact = height < 720 || width < 600;
-    const top = compact ? 30 : 42;
-    const coinY = compact ? height * 0.36 : height * 0.38;
-    const controlsY = compact ? height - 125 : height - 155;
+    const coinY = 310;
 
-    ui.title.setPosition(centerX, top);
-    ui.money.setPosition(centerX, top + 48);
-    ui.level.setPosition(centerX, top + 82);
-    ui.xp.setPosition(centerX, top + 110);
-    ui.result.setPosition(centerX, coinY + 100);
-    ui.bet.setPosition(centerX, controlsY - 55);
-    ui.status.setPosition(centerX, controlsY - 25);
+    drawStaticUI(width, height);
 
-    const buttonGap = Math.min(150, width * 0.29);
-    ui.minusButton.setPosition(centerX - buttonGap, controlsY + 22);
-    ui.plusButton.setPosition(centerX, controlsY + 22);
-    ui.allButton.setPosition(centerX + buttonGap, controlsY + 22);
-    ui.shopButton.setPosition(centerX - buttonGap, controlsY + 78);
-    ui.coinButton.setPosition(centerX, controlsY + 78);
-    ui.tokenButton.setPosition(centerX + buttonGap, controlsY + 78);
+    ui.title.setPosition(centerX, 36);
+    ui.moneyLabel.setPosition(355, 98);
+    ui.money.setPosition(355, 127);
+    ui.levelLabel.setPosition(610, 98);
+    ui.level.setPosition(610, 127);
+    ui.xp.setPosition(890, 103);
+
+    ui.result.setPosition(centerX, 418);
+    ui.resultMoney.setPosition(centerX, 447);
+    ui.resultXp.setPosition(centerX, 472);
+
+    ui.betLabel.setPosition(275, 511);
+    ui.bet.setPosition(275, 548);
+    ui.minimumBet.setPosition(230, 588);
+    ui.maximumBet.setPosition(320, 588);
+    ui.minusButton.setPosition(500, 551);
+    ui.plusButton.setPosition(650, 551);
+    ui.allButton.setPosition(815, 551);
+    ui.headLabel.setPosition(952, 530);
+    ui.headValue.setPosition(1080, 530);
+    ui.shieldLabel.setPosition(952, 574);
+    ui.shieldValue.setPosition(1080, 574);
+
+    ui.shopButton.setPosition(370, 714);
+    ui.coinButton.setPosition(640, 714);
+    ui.tokenButton.setPosition(910, 714);
 
     ui.gameOver.setPosition(centerX, centerY(height));
     ui.restartButton.setPosition(centerX, centerY(height) + 60);
 
     ui.overlay.setSize(width, height);
-    ui.modalTitle.setPosition(centerX, height * 0.18);
-    ui.modalSubtitle.setPosition(centerX, height * 0.25);
+    ui.modalTitle.setPosition(centerX, 185);
+    ui.modalSubtitle.setPosition(centerX, 235);
 
-    const modalHorizontal = width >= 760;
     ui.modalButtons.forEach(function (button, index) {
-        const x = modalHorizontal ? centerX + (index - 1) * Math.min(240, width * 0.28) : centerX;
-        const y = modalHorizontal ? height * 0.48 : height * (0.38 + index * 0.16);
-        button.setPosition(x, y).setFixedSize(modalHorizontal ? 205 : Math.min(320, width - 40), 62);
-        ui.modalInfo[index].setPosition(x, y + 55);
+        const x = centerX + (index - 1) * 285;
+        const y = 400;
+        button.setPosition(x, y).setFixedSize(250, 86);
+        ui.modalInfo[index].setPosition(x, y + 72);
     });
-    ui.rerollButton.setPosition(centerX - 90, height * 0.82);
-    ui.closeShopButton.setPosition(centerX + 90, height * 0.82);
+    ui.rerollButton.setPosition(centerX - 100, 630).setFixedSize(170, 48);
+    ui.closeShopButton.setPosition(centerX + 100, 630).setFixedSize(170, 48);
 
     positionCoins(centerX, coinY);
+    drawXpBar();
+}
+
+function drawStaticUI(width, height) {
+    ui.background.clear();
+    ui.background.fillGradientStyle(0x0d1320, 0x0d1320, 0x070a10, 0x070a10, 1);
+    ui.background.fillRect(0, 0, width, height);
+    ui.background.lineStyle(1, 0x263248, 0.22);
+    for (let x = 0; x <= width; x += 80) {
+        ui.background.lineBetween(x, 0, x, height);
+    }
+    for (let y = 0; y <= height; y += 80) {
+        ui.background.lineBetween(0, y, width, y);
+    }
+
+    ui.panels.clear();
+    drawPanel(ui.panels, 190, 72, 900, 94, 16);
+    drawPanel(ui.panels, 130, 488, 1020, 130, 16);
+    drawPanel(ui.panels, 235, 674, 810, 82, 16);
+
+    ui.modalPanel.clear();
+    ui.modalPanel.fillStyle(COLORS.panel, 1);
+    ui.modalPanel.lineStyle(2, COLORS.gold, 0.7);
+    ui.modalPanel.fillRoundedRect(130, 120, 1020, 570, 22);
+    ui.modalPanel.strokeRoundedRect(130, 120, 1020, 570, 22);
+}
+
+function drawPanel(graphics, x, y, width, height, radius) {
+    graphics.fillStyle(0x000000, 0.28);
+    graphics.fillRoundedRect(x + 5, y + 7, width, height, radius);
+    graphics.fillStyle(COLORS.panel, 0.97);
+    graphics.lineStyle(1.5, COLORS.panelBorder, 0.9);
+    graphics.fillRoundedRect(x, y, width, height, radius);
+    graphics.strokeRoundedRect(x, y, width, height, radius);
+}
+
+function drawXpBar() {
+    if (!ui || !ui.xpBar || !state) {
+        return;
+    }
+    const progress = Phaser.Math.Clamp(state.xp / getXpRequired(state.level), 0, 1);
+    ui.xpBar.clear();
+    ui.xpBar.fillStyle(0x070b12, 1);
+    ui.xpBar.fillRoundedRect(735, 121, 310, 16, 8);
+    if (progress > 0) {
+        ui.xpBar.fillStyle(COLORS.blue, 1);
+        ui.xpBar.fillRoundedRect(738, 124, 304 * progress, 10, 5);
+    }
+    ui.xpBar.lineStyle(1, 0x6bb5ff, 0.45);
+    ui.xpBar.strokeRoundedRect(735, 121, 310, 16, 8);
 }
 
 function centerY(height) {
@@ -249,11 +386,36 @@ function rebuildCoins() {
     const count = 1 + state.talents.friends;
     for (let index = 0; index < count; index += 1) {
         const container = scene.add.container(0, 0);
-        const circle = scene.add.circle(0, 0, 55, getCoinColor(), 1).setStrokeStyle(5, 0xd19a00);
-        const label = makeText(scene, "?", 46, "#202020", "bold");
-        container.add([circle, label]);
-        container.setSize(120, 120).setInteractive({ useHandCursor: true });
-        container.on("pointerdown", flipCoin);
+        const shadow = scene.add.ellipse(0, 74, 110, 24, 0x000000, 0.42);
+        const outerGlow = scene.add.circle(0, 0, 70, getCoinColor(), 0.14).setStrokeStyle(2, getCoinColor(), 0.38);
+        const outerCoin = scene.add.circle(0, 0, 62, getCoinColor(), 1).setStrokeStyle(5, 0x9b7222, 1);
+        const innerCoin = scene.add.circle(0, 0, 50, getCoinColor(), 0.92).setStrokeStyle(2, 0xffe49a, 0.62);
+        const label = makeText(scene, "?", 48, "#17130a", "bold");
+        container.add([shadow, outerGlow, outerCoin, innerCoin, label]);
+        container.setSize(150, 170).setInteractive({ useHandCursor: true });
+        container.on("pointerover", function () {
+            if (state.phase === GAME_PHASE.READY) {
+                scene.tweens.add({ targets: container, scaleX: 1.05, scaleY: 1.05, duration: 110 });
+                outerGlow.setAlpha(0.3);
+            }
+        });
+        container.on("pointerout", function () {
+            if (state.phase === GAME_PHASE.READY) {
+                scene.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 110 });
+                outerGlow.setAlpha(1);
+            }
+        });
+        container.on("pointerdown", function () {
+            if (state.phase === GAME_PHASE.READY) {
+                container.setScale(0.97);
+                scene.time.delayedCall(65, function () {
+                    if (state.phase === GAME_PHASE.READY) {
+                        container.setScale(1.05);
+                    }
+                });
+            }
+            flipCoin();
+        });
         container.coinLabel = label;
         coinObjects.push(container);
     }
@@ -262,7 +424,7 @@ function rebuildCoins() {
 }
 
 function positionCoins(centerX, coinY) {
-    const spacing = Math.min(120, scene.scale.width / Math.max(coinObjects.length + 1, 3));
+    const spacing = Math.min(145, scene.scale.width / Math.max(coinObjects.length + 1, 3));
     coinObjects.forEach(function (coinObject, index) {
         coinObject.setPosition(centerX + (index - (coinObjects.length - 1) / 2) * spacing, coinY);
     });
@@ -394,6 +556,7 @@ function animateCoins(snapshot, onComplete) {
                 { y: originalY - 8, duration: 55, ease: "Quad.easeOut" },
                 {
                     y: originalY,
+                    scaleX: 1,
                     scaleY: 1,
                     duration: 65,
                     ease: "Quad.easeIn",
@@ -484,15 +647,12 @@ function resolveFlip(snapshot) {
         state.freeAllInArmed = false;
     }
 
-    const resultLetters = snapshot.results.map(function (isHead) { return isHead ? "H" : "T"; }).join(" ");
-    let message = resultLetters + "  " + formatSignedMoney(roundedMoneyChange);
-    if (xpGained > 0) {
-        message += "  +" + xpGained + " XP";
+    const resultLetters = snapshot.results.map(function (isHead) { return isHead ? "H" : "T"; });
+    let resultTitle = resultLetters.join(" · ");
+    if (resultLetters.length === 1) {
+        resultTitle = resultLetters[0] === "H" ? "HEAD" : "TAIL";
     }
-    if (shieldsUsed > 0) {
-        message += "  Shield ×" + shieldsUsed;
-    }
-    setResult(message, roundedMoneyChange >= 0 ? "#00ff88" : "#ff5555");
+    setResultSummary(resultTitle, roundedMoneyChange, xpGained, shieldsUsed);
 
     calculateLevelUps();
     clampBet();
@@ -725,12 +885,14 @@ function buyShopItem(index) {
 
 function showModal(title, subtitle) {
     ui.overlay.setVisible(true);
+    ui.modalPanel.setVisible(true);
     ui.modalTitle.setText(title).setVisible(true);
     ui.modalSubtitle.setText(subtitle).setVisible(true);
 }
 
 function hideModal() {
     ui.overlay.setVisible(false);
+    ui.modalPanel.setVisible(false);
     ui.modalTitle.setVisible(false);
     ui.modalSubtitle.setVisible(false);
     ui.modalButtons.forEach(function (button) {
@@ -781,22 +943,60 @@ function setMainControlsEnabled(enabled) {
 
 function updateUI() {
     const xpRequired = getXpRequired(state.level);
-    ui.money.setText("Money: $" + state.money);
-    ui.level.setText("Level " + state.level);
-    ui.xp.setText("XP: " + state.xp + " / " + xpRequired);
-    ui.bet.setText("Bet: $" + state.bet + "   Min: $" + getMinimumBet() + "   Max: $" + getMaximumBet());
-    ui.status.setText("HEAD " + Math.round(getHeadChance() * 100) + "%   Shield: " + state.shieldCharges);
-    ui.coinButton.setText("COIN: " + COINS[state.activeCoin].name);
+    ui.money.setText("$" + state.money);
+    ui.level.setText(String(state.level));
+    ui.xp.setText(state.xp + " / " + xpRequired + " XP");
+    ui.bet.setText("$" + state.bet);
+    ui.minimumBet.setText("MIN  $" + getMinimumBet());
+    ui.maximumBet.setText("MAX  $" + getMaximumBet());
+    ui.headValue.setText(Math.round(getHeadChance() * 100) + "%");
+    ui.shieldValue.setText(String(state.shieldCharges));
+    ui.coinButton.setText("COIN\n" + COINS[state.activeCoin].name);
     ui.allButton.setText(state.activeCoin === "blue" ? "MAX" : "ALL");
-    ui.tokenButton.setText((state.freeAllInArmed ? "ARMED: " : "FREE ALL-IN: ") + state.freeAllInTokens);
+    ui.tokenButton.setText("SKILL\n" + (state.freeAllInArmed ? "ARMED · " : "FREE ALL-IN · ") + state.freeAllInTokens);
     ui.result.setText(state.lastResult);
+    drawXpBar();
+
+    if (state.phase === GAME_PHASE.READY) {
+        setButtonAvailability(ui.minusButton, state.bet > getMinimumBet() && state.money >= getMinimumBet());
+        setButtonAvailability(ui.plusButton, state.bet < getMaximumBet());
+        setButtonAvailability(ui.allButton, state.bet < getMaximumBet());
+        setButtonAvailability(ui.tokenButton, state.freeAllInTokens > 0);
+    }
+}
+
+function setButtonAvailability(button, available) {
+    if (available) {
+        button.setInteractive({ useHandCursor: true }).setAlpha(1);
+    } else {
+        button.disableInteractive().setAlpha(0.38).setScale(1);
+        drawButton(button, false);
+    }
 }
 
 function setResult(message, color) {
     state.lastResult = message;
     if (ui && ui.result) {
         ui.result.setText(message).setColor(color);
+        ui.resultMoney.setText("");
+        ui.resultXp.setText("");
     }
+}
+
+function setResultSummary(title, moneyChange, xpGained, shieldsUsed) {
+    const positive = moneyChange >= 0;
+    state.lastResult = title;
+    ui.result.setText(title).setColor(positive ? "#45d483" : "#ff6673");
+    ui.resultMoney.setText(formatSignedMoney(moneyChange)).setColor(positive ? "#45d483" : "#ff6673");
+
+    const details = [];
+    if (xpGained > 0) {
+        details.push("+" + xpGained + " XP");
+    }
+    if (shieldsUsed > 0) {
+        details.push("SHIELD ×" + shieldsUsed);
+    }
+    ui.resultXp.setText(details.join("   "));
 }
 
 function clampBet() {
