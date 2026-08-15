@@ -162,6 +162,7 @@ function createUI(currentScene) {
     createdUI.coinButton = createButton(currentScene, "COIN\nNORMAL", cycleCoin, "secondary", 230, 58);
     createdUI.tokenButton = createButton(currentScene, "SKILL\nFREE ALL-IN · 0", toggleFreeAllIn, "secondary", 230, 58);
 
+    createdUI.gameOverOverlay = currentScene.add.graphics().setDepth(100).setVisible(false);
     createdUI.gameOver = makeText(currentScene, "GAME OVER", 42, "#ff6673", "bold").setDepth(102).setVisible(false);
     createdUI.restartButton = createButton(currentScene, "RESTART", restartGame);
     createdUI.restartButton.setDepth(102).setVisible(false).disableInteractive();
@@ -304,10 +305,10 @@ function layoutUI(gameSize) {
     ui.coinButton.setPosition(640, 714);
     ui.tokenButton.setPosition(910, 714);
 
-    ui.gameOver.setPosition(centerX, centerY(height));
-    ui.restartButton.setPosition(centerX, centerY(height) + 60);
+    ui.gameOver.setPosition(centerX, 355);
+    ui.restartButton.setPosition(centerX, 435).setFixedSize(190, 52);
 
-    ui.overlay.setSize(width, height);
+    ui.overlay.setDisplaySize(width, height);
     ui.modalTitle.setPosition(centerX, 185);
     ui.modalSubtitle.setPosition(centerX, 235);
 
@@ -346,6 +347,16 @@ function drawStaticUI(width, height) {
     ui.modalPanel.lineStyle(2, COLORS.gold, 0.7);
     ui.modalPanel.fillRoundedRect(130, 120, 1020, 570, 22);
     ui.modalPanel.strokeRoundedRect(130, 120, 1020, 570, 22);
+
+    ui.gameOverOverlay.clear();
+    ui.gameOverOverlay.fillStyle(0x05070b, 0.9);
+    ui.gameOverOverlay.fillRect(0, 0, width, height);
+    ui.gameOverOverlay.fillStyle(0x000000, 0.42);
+    ui.gameOverOverlay.fillRoundedRect(395, 238, 500, 300, 22);
+    ui.gameOverOverlay.fillStyle(COLORS.panel, 1);
+    ui.gameOverOverlay.lineStyle(2, COLORS.gold, 0.75);
+    ui.gameOverOverlay.fillRoundedRect(390, 230, 500, 300, 22);
+    ui.gameOverOverlay.strokeRoundedRect(390, 230, 500, 300, 22);
 }
 
 function drawPanel(graphics, x, y, width, height, radius) {
@@ -907,8 +918,7 @@ function hideModal() {
 function gameOver() {
     state.phase = GAME_PHASE.GAME_OVER;
     setMainControlsEnabled(false);
-    ui.overlay.setVisible(true);
-    ui.modalPanel.setVisible(true);
+    ui.gameOverOverlay.setVisible(true);
     ui.gameOver.setVisible(true);
     ui.restartButton.setVisible(true).setInteractive({ useHandCursor: true });
 }
@@ -916,6 +926,7 @@ function gameOver() {
 function restartGame() {
     state = createInitialState();
     hideModal();
+    ui.gameOverOverlay.setVisible(false);
     ui.gameOver.setVisible(false);
     ui.restartButton.setVisible(false).disableInteractive();
     rebuildCoins();
