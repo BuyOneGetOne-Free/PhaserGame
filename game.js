@@ -162,9 +162,9 @@ function createUI(currentScene) {
     createdUI.coinButton = createButton(currentScene, "COIN\nNORMAL", cycleCoin, "secondary", 230, 58);
     createdUI.tokenButton = createButton(currentScene, "SKILL\nFREE ALL-IN · 0", toggleFreeAllIn, "secondary", 230, 58);
 
-    createdUI.gameOver = makeText(currentScene, "GAME OVER", 42, "#ff6673", "bold").setDepth(10).setVisible(false);
+    createdUI.gameOver = makeText(currentScene, "GAME OVER", 42, "#ff6673", "bold").setDepth(102).setVisible(false);
     createdUI.restartButton = createButton(currentScene, "RESTART", restartGame);
-    createdUI.restartButton.setDepth(10).setVisible(false).disableInteractive();
+    createdUI.restartButton.setDepth(102).setVisible(false).disableInteractive();
 
     createdUI.overlay = currentScene.add.rectangle(0, 0, 10, 10, 0x05070b, 0.9)
         .setOrigin(0)
@@ -907,6 +907,8 @@ function hideModal() {
 function gameOver() {
     state.phase = GAME_PHASE.GAME_OVER;
     setMainControlsEnabled(false);
+    ui.overlay.setVisible(true);
+    ui.modalPanel.setVisible(true);
     ui.gameOver.setVisible(true);
     ui.restartButton.setVisible(true).setInteractive({ useHandCursor: true });
 }
